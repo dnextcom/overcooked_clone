@@ -43,7 +43,11 @@ export class Station {
 
     interact(player) {
         console.log("Interacted with Station!");
-        // Override in subclasses
+        // If the player (local or remote) is holding an item, drop it onto the station.
+        if (player && player.dropItem) {
+            player.dropItem();
+        }
+        // Additional station-specific logic can be added in subclasses.
     }
 
     work(player) {

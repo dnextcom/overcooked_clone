@@ -60,7 +60,9 @@ export class Ingredient {
     }
 
     destroy() {
-        if (this.scene) {
+        if (this.mesh.parent) {
+            this.mesh.parent.remove(this.mesh);
+        } else if (this.scene) {
             this.scene.remove(this.mesh);
         }
         this.material.dispose();

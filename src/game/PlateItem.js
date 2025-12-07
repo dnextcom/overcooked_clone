@@ -46,8 +46,36 @@ export class PlateItem {
         return true;
     }
 
-    getIngredients() {
-        return this.heldIngredients.map(i => ({ type: i.type }));
+    // Getter for ingredients list
+    get ingredients() {
+        return this.heldIngredients.map(i => i.type);
+    }
+
+    // Sync state from server
+    syncIngredients(list) {
+        // Clear current
+        this.heldIngredients.forEach(i => {
+            this.mesh.remove(i.mesh);
+            if (i.visualItem) i.visualItem.destroy();
+        });
+        this.heldIngredients = [];
+
+        // Rebuild from list
+        list.forEach(type => {
+            // Bypass check for sync
+            this.forceAddIngredient(type);
+        });
+    }
+
+    forceAddIngredient(ingredientType) {
+        const visualItem = new Ingredient(null, ingredientType);
+        const miniMesh = visualItem.mesh;
+
+        miniMesh.scale.set(0.5, 0.5, 0.5);
+        miniMesh.position.set(0, 0.1 + (this.heldIngredients.length * 0.15), 0);
+
+        this.mesh.add(miniMesh);
+        this.heldIngredients.push({ type: ingredientType, mesh: miniMesh, visualItem: visualItem });
     }
 
     destroy() {

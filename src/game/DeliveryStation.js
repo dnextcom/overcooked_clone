@@ -21,29 +21,37 @@ export class DeliveryStation extends Station {
             const plate = player.heldItem;
 
             // Validate
-            // Convert plate ingredients to cleaner format if needed
-            const ingredients = plate.getIngredients().map(i => ({ type: i.type }));
+            // Convert plate ingredients (strings) to objects expected by OrderManager if needed, 
+            // OR just fix OrderManager/RecipeSystem to expect strings?
+            // RecipeSystem maps .type: const plateTypes = plateIngredients.map(i => i.type).sort();
+            // So we should pass objects { type: "..." }
 
-            // Use OrderManager (we need to update OrderManager signature possibly or make sure it handles this format)
-            // Previously: OrderManager.deliverPlate(plateItems) where plateItems was array of Ingredients. 
-            // Now we send array of {type:...} or just mock Ingredient objects?
-            // Let's check OrderManager.deliverPlate expectations.
-            // It calls `RecipeSystem.validateRecipe(plateItems)` which maps `i.type`.
-            // So passing `{type: '...'}` objects is sufficient!
+            const ingredients = plate.ingredients.map(i => ({ type: i }));
 
-            const success = this.orderManager.deliverPlate(ingredients);
+            // NOTE: PlateItem.ingredients getter returns plain strings ['chopped_tomato', ...]
+            // So map them back to {type: string} for compatibility with existing RecipeSystem
 
-            if (success) {
-                // Flash Green
-                this.flashColor(0x00ff00);
+            // Only run scoring logic if we are the authority (local player)
+            // If remote player, we just simulate the visual delivery
+            if (!player.isRemote) {
+                const result = this.orderManager.deliverPlate(ingredients);
+
+                if (result && result.success) {
+                    // Flash Green
+                    this.flashColor(0x00ff00);
+                } else {
+                    // Flash Red
+                    this.flashColor(0xff0000);
+                }
             } else {
-                // Flash Red
-                this.flashColor(0xff0000);
+                // Visual feedback only for remote
+                this.flashColor(0x00ff00); // Assume success visual for smoothness? 
+                // Or wait for score update? 
+                // Better to just show interaction feedback.
             }
 
             // Always take the plate? OR only if success? 
             // In Overcooked, correct orders disappear, incorrect ones stay? 
-            // Or incorrect ones go to trash.
             // For MVP: Conveyor takes everything.
             player.dropItem();
             plate.destroy();

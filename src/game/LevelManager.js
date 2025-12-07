@@ -67,6 +67,9 @@ export class LevelManager {
         }
 
         if (station) {
+            // Assign deterministic ID
+            station.id = `${type}_${x}_${z}`;
+
             this.gameWorld.stations.push(station);
             this.gameWorld.world.interactables.push(station.mesh);
 

@@ -37,23 +37,26 @@ export class Player {
 
         // Materials with Randomization
         const skinColors = [0xffccaa, 0x8d5524, 0xc68642, 0xe0ac69, 0xf1c27d, 0xffdbac]; // Diverse skin tones
-        const randomSkin = skinColors[Math.floor(Math.random() * skinColors.length)];
-        const skinMat = new THREE.MeshStandardMaterial({ color: randomSkin });
 
         // Helper for random vibrant clothing color
-        const randColor = () => new THREE.Color().setHSL(Math.random(), 0.8, 0.4);
+        const randColorHex = () => new THREE.Color().setHSL(Math.random(), Math.random(), 0.4).getHex();
 
-        const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff }); // Keep Hat/Shirt White for classic chef look? 
-        // User asked for "each part" to randomize. Let's randomize Shirt too but maybe keep Hat white? 
-        // Or randomize everything. references: "make the colors of each part of the chef randomize"
-        // I will randomize Shirt (Torso) but Separate Hat.
+        // 1. Generate Colors
+        this.colors = {
+            skin: skinColors[Math.floor(Math.random() * skinColors.length)],
+            shirt: randColorHex(),
+            hat: randColorHex(), // Now randomizing hat too as per request
+            apron: randColorHex(),
+            pants: randColorHex(),
+            shoe: 0x111111
+        };
 
-        const shirtMat = new THREE.MeshStandardMaterial({ color: randColor() });
-        const hatMat = new THREE.MeshStandardMaterial({ color: 0xffffff }); // Keep hat white to stay recognizable as Chef
-
-        const apronMat = new THREE.MeshStandardMaterial({ color: randColor() });
-        const pantsMat = new THREE.MeshStandardMaterial({ color: randColor() });
-        const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111111 }); // Shoes dark
+        const skinMat = new THREE.MeshStandardMaterial({ color: this.colors.skin });
+        const shirtMat = new THREE.MeshStandardMaterial({ color: this.colors.shirt });
+        const hatMat = new THREE.MeshStandardMaterial({ color: this.colors.hat });
+        const apronMat = new THREE.MeshStandardMaterial({ color: this.colors.apron });
+        const pantsMat = new THREE.MeshStandardMaterial({ color: this.colors.pants });
+        const shoeMat = new THREE.MeshStandardMaterial({ color: this.colors.shoe });
 
         // --- Body Group (Bobbing part) ---
         this.bodyGroup = new THREE.Group();

@@ -4,13 +4,14 @@ import { Player } from './Player.js';
 import { Station } from './Station.js';
 // Imports for LevelManager (factory usage)
 import { Crate } from './Crate.js';
-import { IngredientType } from './Ingredient.js';
+import { Ingredient, IngredientType } from './Ingredient.js';
 import { ChoppingBoard } from './ChoppingBoard.js';
 import { Stove } from './Stove.js';
 import { PlateDispenser } from './PlateDispenser.js';
 import { Counter } from './Counter.js';
 import { DeliveryStation } from './DeliveryStation.js';
 
+import { RemotePlayer } from './RemotePlayer.js';
 import { OrderManager } from './OrderManager.js';
 import { UIManager } from './UIManager.js';
 import { LevelManager } from './LevelManager.js';
@@ -111,6 +112,7 @@ export class GameWorld {
 
         // Player
         this.player = new Player(this.scene, this.world, new CANNON.Vec3(0, 2, 0));
+        this.remotePlayers = new Map();
 
         // Load Default Level via LevelManager (Aligned to 2x2 grid)
         const defaultLevel = {
@@ -143,6 +145,11 @@ export class GameWorld {
         this.world.step(1 / 60, dt, 3);
 
         if (this.player) this.player.update(time);
+
+        // Update remote players (smoothing)
+        this.remotePlayers.forEach(rp => {
+            if (rp.update) rp.update(dt);
+        });
 
         // Update stations
         for (const station of this.stations) {
@@ -179,5 +186,37 @@ export class GameWorld {
             this.camera.updateProjectionMatrix();
             this.renderer.setSize(window.innerWidth, window.innerHeight);
         });
+    }
+
+    // Update remote player position from server
+    updateRemotePlayer(id, pdata) {
+        let rp = this.remotePlayers.get(id);
+        if (!rp) {
+            rp = new RemotePlayer(this.scene, id);
+            this.remotePlayers.set(id, rp);
+        }
+        if (pdata.position) {
+            // Pass the full position object (contains x, y, z, heldItem)
+            rp.setPosition(pdata.position);
+        }
+        if (pdata.colors) {
+            rp.updateColors(pdata.colors);
+        }
+    }
+
+    forceStationItem(station, type, ingredients) {
+        // Create new item
+        const item = new Ingredient(this.scene, type);
+
+        // Attach to station
+        station.heldItem = item;
+        station.heldItem.mesh.position.copy(station.mesh.position);
+        station.heldItem.mesh.position.y += 1.0;
+        station.heldItem.isHeld = false;
+
+        // Populate contents (if plate/pot)
+        if (ingredients && station.heldItem.syncIngredients) {
+            station.heldItem.syncIngredients(ingredients);
+        }
     }
 }

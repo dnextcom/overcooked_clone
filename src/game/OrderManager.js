@@ -10,24 +10,26 @@ export class OrderManager {
     }
 
     update(dt) {
-        this.spawnTimer += dt;
-        if (this.spawnTimer >= this.spawnInterval) {
-            this.spawnTimer = 0;
-            if (this.orders.length < this.maxOrders) {
-                this.generateOrder();
+        if (!this.disableSpawning) {
+            this.spawnTimer += dt;
+            if (this.spawnTimer >= this.spawnInterval) {
+                this.spawnTimer = 0;
+                if (this.orders.length < this.maxOrders) {
+                    this.generateOrder();
+                }
             }
-        }
 
-        // Timeout orders
-        this.orders.forEach(o => o.remainingTime -= dt);
-        this.orders = this.orders.filter(o => {
-            if (o.remainingTime <= 0) {
-                console.log("ORDER EXPIRED!");
-                this.score -= 10;
-                return false;
-            }
-            return true;
-        });
+            // Timeout orders only if managing them
+            this.orders.forEach(o => o.remainingTime -= dt);
+            this.orders = this.orders.filter(o => {
+                if (o.remainingTime <= 0) {
+                    console.log("ORDER EXPIRED!");
+                    this.score -= 10;
+                    return false;
+                }
+                return true;
+            });
+        }
     }
 
     generateOrder() {
@@ -66,7 +68,8 @@ export class OrderManager {
 
             // Remove order
             this.orders.splice(orderIndex, 1);
-            return true;
+
+            return { success: true, orderId: order.id, score: this.score };
         } else {
             console.log("NO ORDER FOR THIS RECIPE!");
             return false;
